@@ -29,18 +29,36 @@ export const createGig = async (req, res) => {
 
 export const placeBid = async (req, res) => {
     try {
-        const { gigId } = req.params;
-        const { price, message } = req.body;
-        const bid = new bidSchema({
+        const { gigId } = req.params
+        const { message, price } = req.body
+
+        const gig = await gigSchema.findById(gigId)
+        if (!gig) {
+            return res.status(404).json({ message: "Gig not found" })
+        }
+
+        if (gig.ownerId.toString() === req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You cannot bid on your own gig"
+            })
+        }
+        if (gig.status !== "open") {
+            return res.status(400).json({
+                message: "Bidding is closed for this gig"
+            })
+        }
+
+        const bid = await bidSchema.create({
             gigId,
             freelancerId: req.user._id,
-            price,
-            message
-        });
-        await bid.save();
-        res.status(201).json({ message: "Bid placed" });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+            message,
+            price
+        })
+
+        res.status(201).json(bid)
+
+    } catch (error) {
+        res.status(400).json({ error: error.message })
     }
 }
 
@@ -107,6 +125,19 @@ export const hireFreelancer = async (req, res) => {
     } catch (err) {
         await session.abortTransaction();
         session.endSession();
+        res.status(400).json({ error: err.message });
+    }
+}
+
+export const getGigDetails = async (req, res) => {
+    try {
+        const { gigId } = req.params;
+        const gig = await gigSchema.findById(gigId);
+        if (!gig) {
+            return res.status(404).json({ message: "Gig not found" });
+        }
+        res.json(gig);
+    } catch (err) {
         res.status(400).json({ error: err.message });
     }
 }

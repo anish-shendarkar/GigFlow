@@ -4,7 +4,8 @@ import {
     createGig,
     placeBid,
     getBidsForGig,
-    hireFreelancer
+    hireFreelancer,
+    getGigDetails
 } from "../controllers/userController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
@@ -15,5 +16,6 @@ router.post("/gigs", authMiddleware, createGig);
 router.post("/bids/:gigId", authMiddleware, placeBid);
 router.get("/bids/:gigId", authMiddleware, getBidsForGig);
 router.patch("/bids/:bidId/hire", authMiddleware, hireFreelancer);
+router.get("/gigs/:gigId", authMiddleware, getGigDetails);
 
 export default router;
